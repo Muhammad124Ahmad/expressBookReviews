@@ -6,9 +6,8 @@ const public_users = express.Router();
 
 public_users.post("/register", (req, res) => {
   const { username, password } = req.body;
-  if (username && password) {
-    const isFound = users.findIndex((user)=>(user.username == username));
-    if (isFound == -1) {
+  if (password) {
+    if (isValid(username)) {
       users.push({ username, password });
       res.status(200).send(`User: ${username} created successfully`);
     }
