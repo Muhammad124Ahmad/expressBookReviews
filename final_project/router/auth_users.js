@@ -28,12 +28,12 @@ const authenticatedUser = (username, password) => {
 //only registered users can login
 regd_users.post("/login", (req, res) => {
   const { username, password } = req.body;
-  if (authenticatedUser(username,password)) {
+  if (authenticatedUser(username, password)) {
     const accessToken = jwt.sign({ data: password }, "access", {
       expiresIn: 60 * 60,
     });
     req.session.authorization = { accessToken, username };
-    res.status(200).send(`User: ${username} logged in successfully`);
+    return res.status(200).send(`User: ${username} logged in successfully`);
   } else {
     res.status(404).send(`Login Error`);
   }
@@ -41,17 +41,31 @@ regd_users.post("/login", (req, res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  const book=books[req.params.isbn];
-  const username=req.session.authorization["username"];
-  const review=req.query.review;
-if(book && username && review){
-  book.reviews[username]=review;
-  res.status(200).send(`Review for ${book.title} successfully Added.`);
-}
-else{
-  res.status(404).send(`Review couldn't be added.`)
-}
+  const book = books[req.params.isbn];
+  const username = req.session.authorization["username"];
+  const review = req.query.review;
+  if (book && username && review) {
+    book.reviews[username] = review;
+    return res.status(200).send(`Review for ${book.title} successfully Added.`);
+  } else {
+    res.status(404).send(`Review couldn't be added.`);
+  }
+});
 
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+  const book = books[req.params.isbn];
+  const username = req.session.authorization["username"];
+  if (book && username) {
+    if (book.reviews[username]) {
+      delete book.reviews[username];
+      return res
+        .status(200)
+        .send(
+          `Review of book: ${book.title} by ${username} has been successfully deleted.`
+        );
+    }
+  }
+  res.status(404).send("Error Deleting Review");
 });
 
 module.exports.authenticated = regd_users;
